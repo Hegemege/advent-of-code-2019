@@ -49,7 +49,37 @@ def part1(part_input):
 
 
 def part2(part_input):
-    pass
+    line1_steps = part_input[0].split(",")
+    line2_steps = part_input[1].split(",")
+
+    line1_visited = {}
+    closest_intersection_distance = math.inf
+
+    position = (0, 0)
+    step_index = 0
+    for step in line1_steps:
+        parsed = parse_step(step)
+        position_offset = parsed[:2]
+        for i in range(parsed[2]):
+            step_index += 1
+            position = tuple(map(operator.add, position, position_offset))
+            if position not in line1_visited:
+                line1_visited[position] = step_index
+
+    position = (0, 0)
+    step_index = 0
+    for step in line2_steps:
+        parsed = parse_step(step)
+        position_offset = parsed[:2]  # Slicing works for tuples!
+        for i in range(parsed[2]):
+            step_index += 1
+            position = tuple(map(operator.add, position, position_offset))
+            if position in line1_visited:
+                distance = line1_visited[position] + step_index
+                if distance < closest_intersection_distance:
+                    closest_intersection_distance = distance
+
+    print(closest_intersection_distance)
 
 
 if __name__ == '__main__':
@@ -59,4 +89,4 @@ if __name__ == '__main__':
         input_data.append(input_file.readline().strip())
 
         part1(input_data)
-        # part2()
+        part2(input_data)
