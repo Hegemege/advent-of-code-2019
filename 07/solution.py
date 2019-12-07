@@ -116,8 +116,6 @@ def part2(part_input):
     highest_output = -math.inf
 
     for setting in amp_permutations:
-        amp_input = 0
-
         amp_memory = []
         input_buffers = list(map(lambda x: [x], setting))
         output_buffers = [[] for i in range(AMP_COUNT)]
@@ -131,7 +129,7 @@ def part2(part_input):
         input_buffers[0].append(0)
 
         # Start running the programs. Store PC when the program ends until
-        # None is returned
+        # None is returned from the final amp
         while True:
             for amp_index in range(AMP_COUNT):
                 pc = program_counters[amp_index]
@@ -150,10 +148,12 @@ def part2(part_input):
                 # Store program counter
                 program_counters[amp_index] = new_pc
 
+            # The last amp will write it's output to the input of the first amp
+            # anyways, so let's check it from there
             if input_buffers[0][0] > highest_output:
                 highest_output = input_buffers[0][0]
 
-            # Check if the programs have halted
+            # Check if the programs have halted by checking the last amp
             if program_counters[-1] is None:
                 break
 
