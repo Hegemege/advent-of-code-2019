@@ -2,19 +2,25 @@ import itertools
 import math
 
 MAX_INST_PARAM_COUNT = 3
+PRINT_IO = False
 
 
-def run_program(memory, input_buffer, output_buffer):
-    pc = 0
+def run_program(pc, memory, input_buffer, output_buffer):
+    if pc is None:
+        return None
+
     while True:
         result_code, pc_offset = execute_instruction(
             memory, pc, input_buffer, output_buffer)
         if result_code == -1:  # Halt instruction
-            return
+            return None
         if result_code == 0:  # Non-jump instructions
             pc += pc_offset
         elif result_code == 1:  # Jump instructions
             pc = pc_offset
+
+        if pc_offset == 0:  # Waiting for input
+            return pc
 
 
 def execute_instruction(memory, position, input_buffer, output_buffer):
@@ -41,16 +47,21 @@ def execute_instruction(memory, position, input_buffer, output_buffer):
 
     # Input
     if op_code == 3:
+        # If we need to wait for input, return (0, 0) so pc won't advance
+        if len(input_buffer) == 0:
+            return (0, 0)
         write_addr = memory[position + 1]
         input_value = input_buffer.pop(0)
-        print("IN".ljust(6, ' ') + str(input_value))
+        if PRINT_IO:
+            print("IN".ljust(6, ' ') + str(input_value))
         memory[write_addr] = input_value
         return (0, 2)
 
     # Output
     if op_code == 4:
         output_value = get_parameter(memory, position, 1, parameter_modes)
-        print("OUT".ljust(6, ' ') + str(output_value))
+        if PRINT_IO:
+            print("OUT".ljust(6, ' ') + str(output_value))
         output_buffer.append(output_value)
         return (0, 2)
 
@@ -83,15 +94,16 @@ def get_parameter(memory, position, offset, parameter_modes):
 
 
 def part1(part_input):
-    amp_permutations = list(itertools.permutations(range(5), 5))
+    amp_permutations = list(
+        itertools.permutations(range(AMP_COUNT), AMP_COUNT))
     highest_output = -math.inf
     for setting in amp_permutations:
         amp_input = 0
-        for amp_index in range(5):
+        for amp_index in range(AMP_COUNT):
             memory = parse_input_file(part_input)
             input_buffer = [setting[amp_index], amp_input]
             output_buffer = []
-            run_program(memory, input_buffer, output_buffer)
+            run_program(0, memory, input_buffer, output_buffer)
             amp_input = output_buffer.pop()
         if amp_input > highest_output:
             highest_output = amp_input
@@ -99,12 +111,60 @@ def part1(part_input):
 
 
 def part2(part_input):
-    pass
+    amp_permutations = list(itertools.permutations(
+        range(5, 5 + AMP_COUNT), AMP_COUNT))
+    highest_output = -math.inf
+
+    for setting in amp_permutations:
+        amp_input = 0
+
+        amp_memory = []
+        input_buffers = list(map(lambda x: [x], setting))
+        output_buffers = [[] for i in range(AMP_COUNT)]
+        program_counters = [0 for i in range(AMP_COUNT)]
+
+        # Initialize memory
+        for amp_index in range(AMP_COUNT):
+            amp_memory.append(parse_input_file(part_input))
+
+        # Give initial 0 input to the first amp
+        input_buffers[0].append(0)
+
+        # Start running the programs. Store PC when the program ends until
+        # None is returned
+        while True:
+            for amp_index in range(AMP_COUNT):
+                pc = program_counters[amp_index]
+                memory = amp_memory[amp_index]
+                input_buffer = input_buffers[amp_index]
+                output_buffer = output_buffers[amp_index]
+
+                new_pc = run_program(pc, memory, input_buffer, output_buffer)
+
+                # Pass potential output to the next amplifier
+                if len(output_buffer) > 0:
+                    amp_output = output_buffer.pop()
+                    next_amp_index = (amp_index + 1) % AMP_COUNT
+                    input_buffers[next_amp_index].append(amp_output)
+
+                # Store program counter
+                program_counters[amp_index] = new_pc
+
+            if input_buffers[0][0] > highest_output:
+                highest_output = input_buffers[0][0]
+
+            # Check if the programs have halted
+            if program_counters[-1] is None:
+                break
+
+    print(highest_output)
 
 
 def parse_input_file(input_file_contents):
     return list(map(int, input_file_contents.split(",")))
 
+
+AMP_COUNT = 5
 
 if __name__ == '__main__':
     with open('input', 'r') as input_file:
