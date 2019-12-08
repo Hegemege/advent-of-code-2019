@@ -1,6 +1,8 @@
 import math
 
-LAYER_SIZE = 25*6
+LAYER_WIDTH = 25
+LAYER_HEIGHT = 6
+LAYER_SIZE = LAYER_WIDTH*LAYER_HEIGHT
 
 
 def part1(part_input):
@@ -18,7 +20,26 @@ def part1(part_input):
 
 
 def part2(part_input):
-    pass
+    layers = [part_input[i:i+LAYER_SIZE]
+              for i in range(0, len(part_input), LAYER_SIZE)]
+
+    image_data = [2 for i in range(LAYER_SIZE)]
+
+    for layer in layers:
+        for i in range(LAYER_SIZE):
+            layer_pixel = layer[i]
+            image_pixel = image_data[i]
+
+            if image_pixel == 2:
+                image_data[i] = int(layer_pixel)
+
+    pixel_repr = ['.', '#', ' ']
+
+    for j in range(LAYER_HEIGHT):
+        row_str = ''
+        for i in range(LAYER_WIDTH):
+            row_str += pixel_repr[int(image_data[i + j * LAYER_WIDTH])]
+        print(row_str)
 
 
 if __name__ == '__main__':
