@@ -50,7 +50,7 @@ class Intcode:
             operator = int.__add__ if op_code == 1 else int.__mul__
             parameter1 = self.get_parameter(1, parameter_modes)
             parameter2 = self.get_parameter(2, parameter_modes)
-            write_addr = self.get_memory(self.pc + 3)
+            write_addr = self.get_write_addr(3, parameter_modes)
             write_value = operator(parameter1, parameter2)
 
             self.set_memory(write_addr, write_value)
@@ -62,8 +62,8 @@ class Intcode:
             # If we need to wait for input, return (0, 0) so pc won't advance
             if len(self.input_buffer) == 0:
                 return (0, 0, True)
-            write_addr = self.get_memory(self.pc + 1)
             input_value = self.input_buffer.pop(0)
+            write_addr = self.get_write_addr(1, parameter_modes)
             if PRINT_IO:
                 print("IN".ljust(6, ' ') + str(input_value))
             self.set_memory(write_addr, input_value)
@@ -92,7 +92,7 @@ class Intcode:
             operator = int.__lt__ if op_code == 7 else int.__eq__
             parameter1 = self.get_parameter(1, parameter_modes)
             parameter2 = self.get_parameter(2, parameter_modes)
-            write_addr = self.get_memory(self.pc + 3)
+            write_addr = self.get_write_addr(3, parameter_modes)
             write_value = 1 if operator(parameter1, parameter2) else 0
 
             self.set_memory(write_addr, write_value)
@@ -108,12 +108,25 @@ class Intcode:
 
     def get_parameter(self, offset, parameter_modes):
         parameter_mode = parameter_modes[offset - 1]
+        parameter_value = self.get_memory(self.pc + offset)
         if parameter_mode == 0:
-            return self.get_memory(self.get_memory(self.pc + offset))
+            return self.get_memory(parameter_value)
         elif parameter_mode == 1:
-            return self.get_memory(self.pc + offset)
+            return parameter_value
         elif parameter_mode == 2:
-            return self.get_memory(self.relative_base + self.get_memory(self.pc + offset))
+            addr = self.relative_base + parameter_value
+            return self.get_memory(addr)
+
+        print("PARAMETER MODE NOT IMPLEMENTED:", parameter_mode)
+
+    def get_write_addr(self, offset, parameter_modes):
+        parameter_mode = parameter_modes[offset - 1]
+        parameter_value = self.get_memory(self.pc + offset)
+        if parameter_mode == 0:
+            return parameter_value
+        elif parameter_mode == 2:
+            addr = self.relative_base + parameter_value
+            return addr
 
         print("PARAMETER MODE NOT IMPLEMENTED:", parameter_mode)
 
