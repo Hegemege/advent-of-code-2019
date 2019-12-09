@@ -4,7 +4,7 @@ import math
 
 
 MAX_INST_PARAM_COUNT = 3
-PRINT_IO = True
+PRINT_IO = False
 
 
 class Intcode:
@@ -82,9 +82,11 @@ class Intcode:
             parameter1 = self.get_parameter(1, parameter_modes)
             parameter2 = self.get_parameter(2, parameter_modes)
 
-            # A XNOR B
+            # A XNOR B, it just works
             if (parameter1 == 0) == (op_code == 5):
                 return (0, 3, False)
+
+            # Parameter 2 holds the PC value to jump to
             return (1, parameter2, False)
 
         # Less-than && equals
