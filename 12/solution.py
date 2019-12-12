@@ -1,14 +1,16 @@
-AXIS_COUNT = 3
+import math
+from functools import reduce
 
 
 class Moon:
-    def __init__(self, pos):
-        self.pos = [pos[i] for i in range(AXIS_COUNT)]
-        self.vel = [0 for i in range(AXIS_COUNT)]
+    def __init__(self, pos, axis_count=3):
+        self.axis_count = axis_count
+        self.pos = [pos[i] for i in range(self.axis_count)]
+        self.vel = [0 for i in range(self.axis_count)]
 
     def apply_gravity(self, other):
         # Applies gravity for both objects
-        for i in range(AXIS_COUNT):
+        for i in range(self.axis_count):
             if self.pos[i] < other.pos[i]:
                 self.vel[i] += 1
                 other.vel[i] -= 1
@@ -17,11 +19,14 @@ class Moon:
                 other.vel[i] += 1
 
     def update_position(self):
-        for i in range(AXIS_COUNT):
+        for i in range(self.axis_count):
             self.pos[i] += self.vel[i]
 
     def get_energy(self):
         return sum(map(abs, self.pos)) * sum(map(abs, self.vel))
+
+    def __str__(self):
+        return str(tuple(self.pos) + tuple(self.vel))
 
 
 def part1(part_input):
@@ -45,6 +50,44 @@ def part1(part_input):
 
 def part2(part_input):
     print("PART2")
+
+    # Simulate each axis once
+    # The time it takes for the whole system to reset can
+    # be computed by multiplying the individual cycle lengths together
+    # Take gcd of all the three axis cycles to find the first common cycle
+
+    cycles = []
+
+    for i in range(3):
+        coords = parse_input(part_input)
+        coords = [[x[i]] for x in coords]  # Map only to the wanted axis
+        moons = [Moon(pos, 1) for pos in coords]
+
+        visited = set()
+
+        while True:
+            # Apply gravity
+            for moon_index in range(len(moons)):
+                for other_moon_index in range(moon_index, len(moons)):
+                    moons[moon_index].apply_gravity(moons[other_moon_index])
+
+            # Update position
+            for moon in moons:
+                moon.update_position()
+
+            # Check if we have visited this state before
+            moon_hash = hash(",".join(map(str, moons)))
+            if moon_hash in visited:
+                break
+
+            visited.add(moon_hash)
+
+        cycles.append(len(visited))
+
+    cycle_divisor = math.gcd(cycles[0], math.gcd(cycles[1], cycles[2]))
+    print("Cycles", cycles, "divisor", cycle_divisor)
+    cycles = [cycle // cycle_divisor for cycle in cycles]
+    print(reduce(lambda x, y: x * y, cycles))
 
 
 def parse_input(part_input):
