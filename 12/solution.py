@@ -53,8 +53,8 @@ def part2(part_input):
 
     # Simulate each axis once
     # The time it takes for the whole system to reset can
-    # be computed by multiplying the individual cycle lengths together
-    # Take gcd of all the three axis cycles to find the first common cycle
+    # be calculated by computing the least common multiple of
+    # the individual cycles
 
     cycles = []
 
@@ -64,6 +64,10 @@ def part2(part_input):
         moons = [Moon(pos, 1) for pos in coords]
 
         visited = set()
+
+        # Set starting position as visited
+        start_hash = hash(",".join(map(str, moons)))
+        visited.add(start_hash)
 
         while True:
             # Apply gravity
@@ -84,10 +88,12 @@ def part2(part_input):
 
         cycles.append(len(visited))
 
-    cycle_divisor = math.gcd(cycles[0], math.gcd(cycles[1], cycles[2]))
-    print("Cycles", cycles, "divisor", cycle_divisor)
-    cycles = [cycle // cycle_divisor for cycle in cycles]
-    print(reduce(lambda x, y: x * y, cycles))
+    # Find the least common multiple of the cycles
+    lcm = cycles[0]
+    for i in cycles[1:]:
+        lcm = lcm * i // math.gcd(lcm, i)
+
+    print(lcm)
 
 
 def parse_input(part_input):
