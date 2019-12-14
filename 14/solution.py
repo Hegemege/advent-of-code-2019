@@ -143,7 +143,7 @@ def part2(part_input):
 
     print(
         fuel_created - 1
-    )  # Exit condition is the limit of surpassing 10 trillion, so subtract 1
+    )  # Exit condition is the limit of surpassing 1 trillion, so subtract 1
 
 
 if __name__ == "__main__":
