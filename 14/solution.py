@@ -75,15 +75,7 @@ def part1(part_input):
 
     while True:
         # Check if there are only ORE requirements left
-        if (
-            sum(
-                map(
-                    lambda k: chemicals["FUEL"].requirements[k] if k != "ORE" else 0,
-                    chemicals["FUEL"].requirements,
-                )
-            )
-            == 0
-        ):
+        if len(chemicals["FUEL"].requirements) == 1:
             break
 
         # Otherwise replace the current requirements
