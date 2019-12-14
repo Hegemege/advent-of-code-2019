@@ -1,4 +1,5 @@
 import math
+import time
 
 
 class Product:
@@ -123,17 +124,7 @@ def part2(part_input):
         fuel_created += 1
         while True:
             # Check if there are only ORE requirements left
-            if (
-                sum(
-                    map(
-                        lambda k: chemicals["FUEL"].requirements[k]
-                        if k != "ORE"
-                        else 0,
-                        chemicals["FUEL"].requirements,
-                    )
-                )
-                == 0
-            ):
+            if len(chemicals["FUEL"].requirements) == 1:
                 break
 
             # Otherwise replace the current requirements
@@ -143,11 +134,17 @@ def part2(part_input):
 
     print(
         fuel_created - 1
-    )  # Exit condition is the limit of surpassing 1 trillion, so subtract 1
+    )  # Exit condition is the limit of surpassing 10 trillion, so subtract 1
 
 
 if __name__ == "__main__":
     with open("input", "r") as input_file:
         input_file_contents = list(map(str.strip, input_file.readlines()))
+
+        p1_time = time.time()
         part1(input_file_contents)
+        print("Took", time.time() - p1_time)
+
+        p2_time = time.time()
         part2(input_file_contents)
+        print("Took", time.time() - p2_time)
