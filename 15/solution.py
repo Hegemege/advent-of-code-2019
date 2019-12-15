@@ -42,9 +42,6 @@ class Node:
         if self.parent.position[0] > self.position[0]:
             return 4
 
-    def __hash__(self):
-        return hash(str(self.position))
-
 
 def opposite_direction(direction):
     return direction + 1 if direction % 2 != 0 else direction - 1
@@ -60,6 +57,8 @@ def apply_direction(position, direction):
 
 def update_neighbors(nodes):
     for key, value in nodes.items():
+        if value.value == 0:
+            continue
         if value.known_neighbour_count == 4:
             continue
         for unexplored_dir in value.get_unexplored_directions():
@@ -116,7 +115,7 @@ def part1(part_input):
             if backtrack_command is not None:
                 movement_command = backtrack_command
 
-        # If the movement command is still Node, every path has been checked
+        # If the movement command is still None, every path has been checked
         if movement_command is None:
             break
 
