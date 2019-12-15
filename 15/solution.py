@@ -144,16 +144,32 @@ def part1(part_input):
     for k, v in nodes.items():
         if v.value == 2:
             print(v.depth)
-            return
+            break
+
+    return nodes
 
 
-def part2(part_input):
+def part2(nodes):
     print("PART2")
 
-    memory = parse_input_file(part_input)
-    input_buffer = []
-    output_buffer = []
-    computer = Intcode(memory, input_buffer, output_buffer)
+    # Part 1 already gets a complete map
+    # Reset all depths and set the oxygen system's depth at 0
+    # Then get the maximum depth of all nodes
+    oxygen_node = None
+    for k, v in nodes.items():
+        v.depth = math.inf
+        if v.value == 2:
+            oxygen_node = v
+
+    oxygen_node.set_depth(0)
+
+    max_depth = 0
+    for k, v in nodes.items():
+        if v.value != 1:
+            continue
+        if v.depth > max_depth:
+            max_depth = v.depth
+    print(max_depth)
 
 
 def print_grid(grid):
@@ -172,5 +188,5 @@ def parse_input_file(input_file_contents):
 if __name__ == "__main__":
     with open("input", "r") as input_file:
         input_file_contents = input_file.readline().strip()
-        part1(input_file_contents)
-        part2(input_file_contents)
+        nodes = part1(input_file_contents)
+        part2(nodes)
