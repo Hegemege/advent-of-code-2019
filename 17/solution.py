@@ -14,8 +14,6 @@ def part1(part_input):
 
     output_ascii = list(map(chr, computer.output_buffer))
     output_grid = "".join(output_ascii).split("\n")
-    for row in output_grid:
-        print(row)
 
     # Detect intersections
     calibration_sum = 0
@@ -35,8 +33,24 @@ def part1(part_input):
     print(calibration_sum)
 
 
-def part2(nodes):
+def part2(part_input):
     print("PART2")
+
+    memory = parse_input_file(part_input)
+    input_buffer = []
+    output_buffer = []
+    computer = Intcode(memory, input_buffer, output_buffer)
+
+    # Active mode
+    # computer.set_memory(0, 2)
+
+    computer.run_program()
+
+    output_ascii = list(map(chr, computer.output_buffer))
+    output_grid = "".join(output_ascii).split("\n")
+
+    for row in output_grid:
+        print(row)
 
 
 def parse_input_file(input_file_contents):
