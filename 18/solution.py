@@ -35,41 +35,53 @@ def part1(part_input):
     state = SearchState()
 
     # Add keys to lookup
+    key_position_lookup["@"] = (0, 0)  # First key for making iterations easier
     for j in range(len(grid)):
         for i in range(len(grid[j])):
             node = grid[j][i]
             if (
                 node.value != "#"  # No walls
                 and node.value != "."  # No empty space
-                and node.value != "@"  # No starting point
-                and node.value == node.value.lower()  # Keys only
+                and (
+                    node.value == "@"  # Starting point behaves like a key
+                    or node.value == node.lowervalue  # Actual keys
+                )
             ):
-                state.keys_picked[node.value] = False
                 key_position_lookup[node.value] = (i, j)
 
-            if node.value == "@":
-                state.position = (i, j)
-
     # Create a lookup for shortest paths between keys
-    # Key is (from, to) as symbols, value is (path_length, doors)
+    # Key is (from, to) as symbols, value is a list of tuples
+    # [(path_length, required_keys)]
     key_shortest_path_lookup = {}
     keys = list(key_position_lookup.keys())
     for key_index in range(len(keys)):
         key = keys[key_index]
         for other_key_index in range(key_index + 1, len(keys)):
             other_key = keys[other_key_index]
-            # Clear the grid
-            for row in grid:
-                for node in row:
-                    node.depth = math.inf
-                    node.parent = None
-            x, y = key_position_lookup[key]
-            tx, ty = key_position_lookup[other_key]
-            grid[y][x].set_depth_probe(0)
+            # Add empty arrays to cache
+            key_shortest_path_lookup[(key, other_key)] = []
+            key_shortest_path_lookup[(other_key, key)] = []
+            # # Clear the grid
+            # for row in grid:
+            #     for node in row:
+            #         node.depth = math.inf
+            #         node.parent = None
+            # x, y = key_position_lookup[key]
+            # tx, ty = key_position_lookup[other_key]
+            # grid[y][x].set_depth_probe(0)
+    #
+    # path_length = grid[ty][tx].depth
+    # path_doors = grid[ty][tx].find_parent_doors([])
+    # key_shortest_path_lookup[(key, other_key)] = (path_length, path_doors)
 
-            path_length = grid[ty][tx].depth
-            path_doors = grid[ty][tx].find_parent_doors([])
-            key_shortest_path_lookup[(key, other_key)] = (path_length, path_doors)
+    # Set the starting key as always picked
+    state.keys_picked.add("@")
+    state.position = key_position_lookup["@"]
+    state.current_key = "@"
+    for key in keys:
+        if key == "@":
+            continue
+        state.keys_missing.add(key)
 
     search_stack = [state]
     shortest_solution_length = math.inf

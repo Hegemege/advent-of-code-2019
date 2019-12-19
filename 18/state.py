@@ -4,17 +4,19 @@ import math
 class SearchState:
     def __init__(self):
         self.step_count = 0
-        self.keys_picked = {}
+        self.keys_picked = set()
+        self.keys_missing = set()
         self.position = (0, 0)
         self.current_key = None
 
     def is_terminal_state(self):
-        return sum([v for k, v in self.keys_picked.items()]) == len(self.keys_picked)
+        return len(self.keys_missing) == 0
 
     def clone(self):
         clone = SearchState()
         clone.step_count = self.step_count
         clone.keys_picked = self.keys_picked.copy()
+        clone.keys_missing = self.keys_missing.copy()
         clone.position = (self.position[0], self.position[1])
         clone.current_key = self.current_key
         return clone
@@ -30,40 +32,46 @@ class SearchState:
         actions = []
 
         # For every key not yet picked, see if we can reach them
-        for k, v in self.keys_picked.items():
-            if v is True:
-                continue
-
+        for k in self.keys_missing:
             target_position = key_position_lookup[k]
 
             cached_path_length = math.inf
-            # Check if the path has been cached and we have all the keys required
-            if self.step_count > 0:  # First step does not start from a key
-                path_length = math.inf
-                doors = []
-                if (self.current_key, k) in key_shortest_path_lookup:
-                    path_length, doors = key_shortest_path_lookup[(self.current_key, k)]
-                elif (k, self.current_key) in key_shortest_path_lookup:
-                    path_length, doors = key_shortest_path_lookup[(k, self.current_key)]
 
-                if path_length is not math.inf:
-                    doors_fulfilled = 0
-                    for door in doors:
-                        if self.keys_picked[door.lower()]:
-                            doors_fulfilled += 1
-                    if doors_fulfilled == len(doors):
-                        # Use the cached path distance
-                        cached_path_length = path_length
+            for paths in key_shortest_path_lookup[(self.current_key, k)]:
+                path_length = paths[0]
+                keys_used = paths[1]
+                doors_fulfilled = 0
+                for key in keys_used:
+                    if key in self.keys_picked:
+                        doors_fulfilled += 1
+                if doors_fulfilled == len(keys_used):
+                    # Use the cached path distance
+                    cached_path_length = path_length
 
             if cached_path_length is not math.inf:
                 actions.append((target_position, cached_path_length, k))
                 continue
 
+            # Calculate the path
             path_length_to_key = self.get_path_length(grid, target_position)
+            door_cache = grid[target_position[1]][target_position[0]].find_parent_doors(
+                []
+            )
+
+            # Add to cache
+            key_shortest_path_lookup[(self.current_key, k)].append(
+                (path_length_to_key, door_cache,)
+            )
+
+            key_shortest_path_lookup[(k, self.current_key)].append(
+                (path_length_to_key, door_cache,)
+            )
 
             if path_length_to_key is not math.inf:
                 actions.append((target_position, path_length_to_key, k))
 
+        # Sort actions such that shortest is last
+        # actions.sort(key=lambda x: x[2], reverse=True)
         return actions
 
     def get_path_length(self, grid, target_position):
@@ -75,8 +83,9 @@ class SearchState:
         for row in grid:
             for node in row:
                 node.depth = math.inf
+                node.parent = None
 
-        grid[self.position[1]][self.position[0]].set_depth(0, self.keys_picked)
+        grid[self.position[1]][self.position[0]].set_depth(0, self.keys_missing)
         return grid[target_position[1]][target_position[0]].depth
 
     def apply_action(self, action):
@@ -86,5 +95,6 @@ class SearchState:
         """
         self.position = action[0]
         self.step_count += action[1]
-        self.keys_picked[action[2]] = True
+        self.keys_picked.add(action[2])
+        self.keys_missing.remove(action[2])
         self.current_key = action[2]
