@@ -21,8 +21,8 @@ def part1(part_input):
 
             computer = Intcode(memory, input_buffer, output_buffer)
 
-            computer.input_buffer.append(i)
-            computer.input_buffer.append(j)
+            computer.set_input(i)
+            computer.set_input(j)
 
             computer.run_program()
 
@@ -39,8 +39,8 @@ def part1(part_input):
 def position_in_beam(initial_memory, input_buffer, output_buffer, position):
     memory = initial_memory[:]
     computer = Intcode(memory, input_buffer, output_buffer)
-    computer.input_buffer.append(position[0])
-    computer.input_buffer.append(position[1])
+    computer.set_input(position[0])
+    computer.set_input(position[1])
 
     computer.run_program()
 
