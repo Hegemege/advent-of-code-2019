@@ -20,13 +20,13 @@ def part1(part_input):
     for j in range(1, len(grid) - 1):
         for i in range(1, len(grid[0]) - 1):
             node = grid[j][i]
-            if grid[j - 1][i] != "#":
+            if grid[j - 1][i].value != "#":
                 node.neighbors.append(grid[j - 1][i])
-            if grid[j + 1][i] != "#":
+            if grid[j + 1][i].value != "#":
                 node.neighbors.append(grid[j + 1][i])
-            if grid[j][i - 1] != "#":
+            if grid[j][i - 1].value != "#":
                 node.neighbors.append(grid[j][i - 1])
-            if grid[j][i + 1] != "#":
+            if grid[j][i + 1].value != "#":
                 node.neighbors.append(grid[j][i + 1])
 
     key_position_lookup = {}
