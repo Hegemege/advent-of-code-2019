@@ -2,8 +2,8 @@ import math
 
 
 class Node:
-    def __init__(self, x, y, value):
-        self.position = (x, y)
+    def __init__(self, x, y, z, value):
+        self.position = (x, y, z)
         self.value = value
         self.neighbors = []
         self.depth = math.inf
@@ -33,4 +33,6 @@ class Node:
                 neighbor.depth = min(neighbor.depth, extend.depth + 1)
 
             boundary += extend.neighbors
+
+        return None
 
