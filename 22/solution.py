@@ -18,7 +18,7 @@ def part1(part_input):
         if "cut" in row:
             instructions.append((ShuffleType.CUT, int(row.split(" ")[-1])))
         elif "new" in row:
-            instructions.append((ShuffleType.DEALINTONEWSTACK))
+            instructions.append((ShuffleType.DEALINTONEWSTACK,))
         elif "with" in row:
             instructions.append(
                 (ShuffleType.DEALWITHINCREMENT, int(row.split(" ")[-1]))
@@ -32,7 +32,14 @@ def part1(part_input):
             if abs(param) < DECK_SIZE:
                 deck = deck[param:] + deck[:param]
         elif instruction[0] == ShuffleType.DEALWITHINCREMENT:
-            pass
+            param = instruction[1]
+            new_deck = [None for i in range(DECK_SIZE)]
+            for i in range(DECK_SIZE):
+                index = (i * param) % DECK_SIZE
+                new_deck[index] = deck[i]
+            deck = new_deck
+
+    print(deck.index(2019))
 
 
 def part2(part_input):
