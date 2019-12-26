@@ -10,7 +10,7 @@ def ascii_to_data(data):
     return list(map(ord, data))
 
 
-def part1(part_input):
+def main(part_input):
     print("PART1")
 
     computers = []
@@ -25,13 +25,23 @@ def part1(part_input):
         computer.run_program()
 
     network_messages = []
+    nat_memory = None
+    nat_sent_history = set()
+    part1_complete = False
     while True:
         # Pass messages to machines
         for message in network_messages:
             # If address is 255, print and exit
-            if message[0] == 255:
+            if message[0] == 255 and not part1_complete:
+                part1_complete = True
                 print(message[2])
-                return
+                print("PART2")
+
+            # Direct 255 to NAT
+            if message[0] == 255:
+                nat_memory = (0, message[1], message[2])
+                continue
+
             # Pass X and Y as input to the computer
             address, X, Y = message
             computers[address].set_input(X)
@@ -40,9 +50,24 @@ def part1(part_input):
         network_messages.clear()
 
         # If there is no input, pass -1
+        # Monitor NAT
+        network_active = False
         for computer in computers:
             if len(computer.input_buffer) == 0:
                 computer.set_input(-1)
+            elif part1_complete:
+                network_active = True
+
+        if part1_complete and not network_active:
+            # Send NAT packet
+            if nat_memory in nat_sent_history:
+                print(nat_memory[2])
+                break
+            nat_sent_history.add(nat_memory)
+
+            address = nat_memory[0]
+            computers[address].set_input(nat_memory[1])
+            computers[address].set_input(nat_memory[2])
 
         for computer in computers:
             computer.run_program()
@@ -58,10 +83,6 @@ def part1(part_input):
             network_messages.append((address, X, Y))
 
 
-def part2(part_input):
-    print("PART2")
-
-
 def parse_input_file(input_file_contents):
     return list(map(int, input_file_contents.split(",")))
 
@@ -69,5 +90,4 @@ def parse_input_file(input_file_contents):
 if __name__ == "__main__":
     with open("input", "r") as input_file:
         input_file_contents = input_file.readline().strip()
-        part1(input_file_contents)
-        part2(input_file_contents)
+        main(input_file_contents)
